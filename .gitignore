@@ -28,6 +28,7 @@ media
 build/
 develop-eggs/
 dist/
+data/
 downloads/
 eggs/
 .eggs/
@@ -137,6 +138,7 @@ celerybeat.pid
 env/
 venv/
 ENV/
+venv2/
 env.bak/
 venv.bak/
 

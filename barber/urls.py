@@ -3,10 +3,13 @@ from .views import (
     BarberListCreateView, BarberDetailView,
     CategoryListCreateView, CategoryDetailView,
     ServiceListCreateView, ServiceDetailView,
-    AppointmentListCreateView, AppointmentDetailView
+    AppointmentListCreateView, AppointmentDetailView,
+    RenderFrontEnd
 )
 
 urlpatterns = [
+    path('', RenderFrontEnd.as_view(), name='render-front-end'),
+
     path('barbers/', BarberListCreateView.as_view(), name='barber-list-create'),
     path('barbers/<int:pk>/', BarberDetailView.as_view(), name='barber-detail'),
 

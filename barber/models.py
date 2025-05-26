@@ -34,7 +34,7 @@ def save_user_profile(sender, instance, **kwargs):
 
 class Barber(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='barber')
-    available_hours = models.JSONField(default=dict)  # Ex.: {"segunda": ["09:00-18:00"]}
+    available_hours = models.JSONField(default=dict)  # Ex.: {"Category_name": ["08:00:00", "19:00:00"]}
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

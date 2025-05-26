@@ -1,9 +1,40 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Barber, Category, Service, Appointment
-from .serializers import BarberSerializer, CategorySerializer, ServiceSerializer, AppointmentSerializer
+from .models import (
+        Barber, 
+        Category, 
+        Service, 
+        Appointment
+        )
+from .serializers import (
+        BarberSerializer, 
+        CategorySerializer, 
+        ServiceSerializer, 
+        AppointmentSerializer
+        )
+
+from django.template.response import TemplateResponse
+from django.views.generic import TemplateView
+#from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+
+
+
+# RENDER
+class RenderFrontEnd(TemplateView):
+    def get(self, request):
+        return TemplateResponse(request, 'home.html')
+
+class RenderConfigs(TemplateView):
+    def get(self, request):
+        return True
+
+ #   def getAvaliableHours(self, request):
+ #       barbers = get_object_or_404(Barber, )
+
+
+
 
 # BARBER
 class BarberListCreateView(APIView):

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h2>Detalhes do Agendamento</h2>
+  <ul class="list-group">
+    <li class="list-group-item"><strong>Cliente:</strong> {{ appointment.client.get_full_name }}</li>
+    <li class="list-group-item"><strong>Barbeiro:</strong> {{ appointment.barber.user.get_full_name }}</li>
+    <li class="list-group-item"><strong>Serviço:</strong> {{ appointment.service.name }}</li>
+    <li class="list-group-item"><strong>Data/Hora:</strong> {{ appointment.appointment_datetime }}</li>
+    <li class="list-group-item"><strong>Status:</strong> {{ appointment.status }}</li>
+  </ul>
+</div>
+{% endblock %}

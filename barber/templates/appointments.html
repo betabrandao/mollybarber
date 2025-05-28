@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h2>Agendamentos</h2>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Cliente</th>
+        <th>Barbeiro</th>
+        <th>Serviço</th>
+        <th>Data e Hora</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for appointment in appointments %}
+        <tr>
+          <td>{{ appointment.client.get_full_name }}</td>
+          <td>{{ appointment.barber.user.get_full_name }}</td>
+          <td>{{ appointment.service.name }}</td>
+          <td>{{ appointment.appointment_datetime }}</td>
+          <td>{{ appointment.status }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

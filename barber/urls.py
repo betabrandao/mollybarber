@@ -1,24 +1,23 @@
 from django.urls import path
-from .views import (
-    BarberListCreateView, BarberDetailView,
-    CategoryListCreateView, CategoryDetailView,
-    ServiceListCreateView, ServiceDetailView,
-    AppointmentListCreateView, AppointmentDetailView,
-    RenderFrontEnd
-)
+from . import views
 
 urlpatterns = [
-    path('', RenderFrontEnd.as_view(), name='render-front-end'),
+    path('', views.show_home, name='home'),
+    path('barbeiros/', views.list_barbers, name='list_barbers'),
+    path('categorias/', views.list_categories, name='list_categories'),
+    path('servicos/', views.list_services, name='list_services'),
+    path('barbeiro/<int:barber_id>/servicos/', views.barber_services, name='barber_services'),
+    path('agendamentos/', views.list_appointments, name='list_appointments'),
+    path('agendamento/<int:appointment_id>/', views.appointment_details, name='appointment_details'),
+    path('registrar/', views.register_user, name='register_user'),
+    path('login/', views.login_user, name='login_user'),
 
-    path('barbers/', BarberListCreateView.as_view(), name='barber-list-create'),
-    path('barbers/<int:pk>/', BarberDetailView.as_view(), name='barber-detail'),
+    # Serviços
+    path('servicos/adicionar/', views.add_service, name='add_service'),
+    path('servicos/<int:service_id>/editar/', views.edit_service, name='edit_service'),
 
-    path('categories/', CategoryListCreateView.as_view(), name='category-list-create'),
-    path('categories/<int:pk>/', CategoryDetailView.as_view(), name='category-detail'),
+    # Agendamentos
+    path('agendamentos/adicionar/', views.add_appointment, name='add_appointment'),
+    path('agendamentos/<int:appointment_id>/editar/', views.edit_appointment, name='edit_appointment'),
 
-    path('services/', ServiceListCreateView.as_view(), name='service-list-create'),
-    path('services/<int:pk>/', ServiceDetailView.as_view(), name='service-detail'),
-
-    path('appointments/', AppointmentListCreateView.as_view(), name='appointment-list-create'),
-    path('appointments/<int:pk>/', AppointmentDetailView.as_view(), name='appointment-detail'),
 ]

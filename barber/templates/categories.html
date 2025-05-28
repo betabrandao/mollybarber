@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h2>Categorias de Serviços</h2>
+  <ul class="list-group">
+    {% for category in categories %}
+      <li class="list-group-item">{{ category.name }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

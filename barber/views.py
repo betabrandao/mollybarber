@@ -12,9 +12,10 @@ def show_home(request):
     return HttpResponse(template.render({}, request))
 
 def list_barbers(request):
-    barbers = Barber.objects.all()
+    barbers = UserProfile.objects.query(user_type='barbeiro')
     template = loader.get_template('barbers.html')
     context = {'barbers': barbers}
+    print(barbers)
     return HttpResponse(template.render(context, request))
 
 def list_categories(request):
@@ -118,3 +119,46 @@ def edit_appointment(request, appointment_id):
     else:
         form = AppointmentForm(instance=appointment)
     return render(request, 'edit_appointment.html', {'form': form})
+
+def barber_hours_list(request, barber_id):
+    barber = get_object_or_404(Barber, id=barber_id)
+    return render(request, 'barber_hours_list.html', {'barber': barber})
+
+def add_barber_hours(request, barber_id):
+    barber = get_object_or_404(Barber, id=barber_id)
+    if request.method == 'POST':
+        day = request.POST['day']
+        start = request.POST['startTime']
+        end = request.POST['endTime']
+        hours = barber.available_hours or {}
+        hours[day] = {'daysOfWeek': [], 'startTime': start, 'endTime': end}
+        barber.available_hours = hours
+        barber.save()
+        return redirect('barber_hours_list', barber_id=barber.id)
+    return render(request, 'add_edit_barber_hours.html', {'barber': barber, 'title': 'Adicionar Horário', 'day': '', 'start': '', 'end': ''})
+
+def edit_barber_hours(request, barber_id, day):
+    barber = get_object_or_404(Barber, id=barber_id)
+    hours = barber.available_hours.get(day, {})
+    if request.method == 'POST':
+        start = request.POST['startTime']
+        end = request.POST['endTime']
+        barber.available_hours[day] = {'daysOfWeek': [], 'startTime': start, 'endTime': end}
+        barber.save()
+        return redirect('barber_hours_list', barber_id=barber.id)
+    return render(request, 'add_edit_barber_hours.html', {
+        'barber': barber,
+        'title': 'Editar Horário',
+        'day': day,
+        'start': hours.get('startTime', ''),
+        'end': hours.get('endTime', '')
+    })
+
+def delete_barber_hours(request, barber_id, day):
+    barber = get_object_or_404(Barber, id=barber_id)
+    if request.method == 'POST':
+        if day in barber.available_hours:
+            del barber.available_hours[day]
+            barber.save()
+        return redirect('barber_hours_list', barber_id=barber.id)
+    return render(request, 'confirm_delete_barber_hours.html', {'barber': barber, 'day': day})

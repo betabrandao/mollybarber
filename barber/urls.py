@@ -20,4 +20,9 @@ urlpatterns = [
     path('agendamentos/adicionar/', views.add_appointment, name='add_appointment'),
     path('agendamentos/<int:appointment_id>/editar/', views.edit_appointment, name='edit_appointment'),
 
+    path('barbeiro/<int:barber_id>/horarios/', views.barber_hours_list, name='list_barber_hours'),
+    path('barbeiro/<int:barber_id>/horarios/adicionar/', views.add_barber_hours, name='add_barber_hours'),
+    path('barbeiro/<int:barber_id>/horarios/<int:index>/editar/', views.edit_barber_hours, name='edit_barber_hours'),
+    path('barbeiro/<int:barber_id>/horarios/<int:index>/excluir/', views.delete_barber_hours, name='delete_barber_hours'),
+
 ]

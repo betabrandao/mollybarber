@@ -7,12 +7,39 @@
 </head>
 <body class="bg-light">
   <div class="container py-5">
-    {% if user.is_authenticated %}
+    {% if user.is_authenticated and user.profile.user_type == "barbeiro" %}
     <h1 class="mb-4">Bem-vindo à Barbearia, {{ user.get_full_name|default:user.username }}</h1>
     <a href="{% url 'edit_barber_hours' %}" class="btn btn-primary">Editar Horarios</a>
     <a href="{% url 'list_services' %}" class="btn btn-secondary">Ver Serviços</a>
     <a href="{% url 'list_appointments' %}" class="btn btn-success">Ver Agendamentos</a>
+      <form action="{% url 'logout' %}" method="post" style="display: inline;">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-danger">Sair</button>
+</form>
   {% endif %}
+
+  {% if user.is_authenticated and user.profile.user_type == "usuario" %}
+  <div class="alert alert-warning">
+    Você tem o cadastro, mas não é um barbeiro. Algumas funcionalidades estão restritas.
+    Para habilitar seu login para administrar sua barbearia, entre em contato.
+  </div>
+  <form action="{% url 'logout' %}" method="post" style="display: inline;">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-danger">Sair</button>
+</form>
+{% endif %}
+
+{% if user.is_authenticated and user.profile.user_type == "admin" %}
+  <div class="alert">
+    Bem vindo Administrador do sistema!
+  </div>
+  <a href="/admin/" class="btn btn-primary">Painel Administrativo</a>
+  <form action="{% url 'logout' %}" method="post" style="display: inline;">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-danger">Sair</button>
+</form>
+{% endif %}
+
   </div>
 </body>
 </html>

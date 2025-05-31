@@ -3,14 +3,16 @@ from django.http import HttpResponse, HttpResponseForbidden
 from django.template import loader
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
-from .models import UserProfile, Barber, Category, Service, Appointment
-from .forms import ServiceForm, AppointmentForm, CategoryForm
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate, login
 
+from .decorators import barber_required
+from .models import Barber, Category, Service, Appointment
+from .forms import ServiceForm, AppointmentForm, CategoryForm
+
 import json
 
-@login_required(login_url='login/')
+@login_required(login_url='login_user')
 def show_home(request):
     template = loader.get_template('home.html')
     return render(request, 'home.html', {'user': request.user})
@@ -45,6 +47,7 @@ def login_user(request):
 # ---------- CATEGORIAS ----------- ok
 
 @login_required
+@barber_required
 def list_categories(request):
     categories = Category.objects.all()
     template = loader.get_template('categories.html')
@@ -52,6 +55,7 @@ def list_categories(request):
     return HttpResponse(template.render(context, request))
 
 @login_required
+@barber_required
 def add_category(request):
     if request.method == 'POST':
         form = CategoryForm(request.POST)
@@ -63,6 +67,7 @@ def add_category(request):
     return render(request, 'add_edit_category.html', {'form': form})
 
 @login_required
+@barber_required
 def edit_category(request, category_id):
     category = get_object_or_404(Category, pk=category_id)
     if request.method == 'POST':
@@ -75,6 +80,7 @@ def edit_category(request, category_id):
     return render(request, 'add_edit_category.html', {'form': form, 'category': category})
 
 @login_required
+@barber_required
 def delete_category(request, category_id):
     category = get_object_or_404(Category, pk=category_id)
     if request.method == 'POST':
@@ -85,6 +91,7 @@ def delete_category(request, category_id):
 
 # ---------- SERVICOS ------------ ok
 @login_required
+@barber_required
 def list_services(request):
     services = Service.objects.all()
     template = loader.get_template('services.html')
@@ -92,6 +99,7 @@ def list_services(request):
     return HttpResponse(template.render(context, request))
 
 @login_required
+@barber_required
 def add_service(request):
     if not hasattr(request.user, 'barber'):
         return HttpResponseForbidden("Apenas barbeiros podem cadastrar serviços.")
@@ -109,6 +117,7 @@ def add_service(request):
     return render(request, 'add_edit_service.html', {'form': form})
 
 @login_required
+@barber_required
 def edit_service(request, service_id):
     service = get_object_or_404(Service, pk=service_id)
 
@@ -126,6 +135,7 @@ def edit_service(request, service_id):
     return render(request, 'add_edit_service.html', {'form': form})
 
 @login_required
+@barber_required
 def delete_service(request, service_id):
     service = get_object_or_404(Service, pk=service_id)
 
@@ -139,12 +149,16 @@ def delete_service(request, service_id):
     return render(request, 'delete_service.html', {'service': service})
 
 # -------- AGENDAMENTO --------
+@login_required
+@barber_required
 def list_appointments(request):
     appointments = Appointment.objects.filter(barber=request.user.barber).order_by('appointment_datetime')
     template = loader.get_template('appointments.html')
     context = {'appointments': appointments}
     return HttpResponse(template.render(context, request))
 
+@login_required
+@barber_required
 def appointment_details(request, appointment_id):
     appointment = get_object_or_404(Appointment, pk=appointment_id)
     template = loader.get_template('appointment_detail.html')
@@ -152,6 +166,7 @@ def appointment_details(request, appointment_id):
     return HttpResponse(template.render(context, request))
 
 @login_required
+@barber_required
 def add_appointment(request):
     if request.method == 'POST':
         form = AppointmentForm(request.POST)
@@ -165,6 +180,7 @@ def add_appointment(request):
     return render(request, 'add_appointment.html', {'form': form})
 
 @login_required
+@barber_required
 def edit_appointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, pk=appointment_id)
     if request.method == 'POST':
@@ -177,12 +193,16 @@ def edit_appointment(request, appointment_id):
     return render(request, 'edit_appointment.html', {'form': form})
 
 # -------- HORARIOS DISPONIVEIS ------------- ok
- 
+
+@login_required
+@barber_required
 def barber_hours(request):
     barber = get_object_or_404(Barber, user_id=request.user.id)
     context = {'barber': barber}
     return render(request, 'barbers.json', context)
 
+@login_required
+@barber_required
 def edit_barber_hours(request):
     barber = get_object_or_404(Barber, user_id=request.user.id)
     if request.method == 'POST':

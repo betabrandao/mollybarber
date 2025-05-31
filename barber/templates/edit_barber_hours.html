@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h2>Editar Horario</h2>
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="day" class="form-label">Dias da Semana 1,2,3,4,5,6. 0 é domingo</label>
+      <input type="text" class="form-control" id="days" name="days" value="{{ days }}">
+    </div>
+    <div class="mb-3">
+      {% for id, name in daysName %}
+      <div class="form-check form-check-inline">
+        <input class="form-check-input"
+               type="checkbox"
+               name="days[]"
+               value="{{ id }}"
+               id="day_{{ id }}"
+               {% if id in days %}checked="checked"{% endif %}/>
+        <label class="form-check-label" for="day_{{ id }}">
+          {{ name }}
+        </label>
+      </div>
+
+    {% endfor %}
+    </div>
+    <div class="mb-3">
+      <label for="startTime" class="form-label">Hora de Início</label>
+      <input type="time" class="form-control" id="startTime" name="startTime" value="{{ startTime }}">
+    </div>
+    <div class="mb-3">
+      <label for="endTime" class="form-label">Hora de Término</label>
+      <input type="time" class="form-control" id="endTime" name="endTime" value="{{ endTime }}">
+    </div>
+    <button type="submit" class="btn btn-primary">Salvar</button>
+    <a href="{% url 'barber_hours' %}" class="btn btn-secondary">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

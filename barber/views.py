@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.template import loader
 from django.shortcuts import render, get_object_or_404, redirect
@@ -7,16 +8,17 @@ from .forms import ServiceForm, AppointmentForm
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate, login
 
+import json
+
+@login_required(login_url='login/')
 def show_home(request):
     template = loader.get_template('home.html')
-    return HttpResponse(template.render({}, request))
+    return render(request, 'home.html', {'user': request.user})
 
-def list_barbers(request):
-    barbers = UserProfile.objects.query(user_type='barbeiro')
-    template = loader.get_template('barbers.html')
-    context = {'barbers': barbers}
-    print(barbers)
-    return HttpResponse(template.render(context, request))
+def barber_hours(request):
+    barber = get_object_or_404(Barber, user_id=request.user.id)
+    context = {'barber': barber}
+    return render(request, 'barbers.json', context)
 
 def list_categories(request):
     categories = Category.objects.all()
@@ -77,10 +79,13 @@ def login_user(request):
 
 # - Funções do Forms
 # -------- SERVIÇO --------
+@login_required
 def add_service(request):
     if request.method == 'POST':
         form = ServiceForm(request.POST)
         if form.is_valid():
+            service = form.save(commit=False)
+            service.barber = request.user.barber  # vincula ao barbeiro logado
             form.save()
             return redirect('list_services')
     else:
@@ -124,41 +129,28 @@ def barber_hours_list(request, barber_id):
     barber = get_object_or_404(Barber, id=barber_id)
     return render(request, 'barber_hours_list.html', {'barber': barber})
 
-def add_barber_hours(request, barber_id):
-    barber = get_object_or_404(Barber, id=barber_id)
-    if request.method == 'POST':
-        day = request.POST['day']
-        start = request.POST['startTime']
-        end = request.POST['endTime']
-        hours = barber.available_hours or {}
-        hours[day] = {'daysOfWeek': [], 'startTime': start, 'endTime': end}
-        barber.available_hours = hours
-        barber.save()
-        return redirect('barber_hours_list', barber_id=barber.id)
-    return render(request, 'add_edit_barber_hours.html', {'barber': barber, 'title': 'Adicionar Horário', 'day': '', 'start': '', 'end': ''})
 
-def edit_barber_hours(request, barber_id, day):
-    barber = get_object_or_404(Barber, id=barber_id)
-    hours = barber.available_hours.get(day, {})
+def edit_barber_hours(request):
+    barber = get_object_or_404(Barber, user_id=request.user.id)
     if request.method == 'POST':
-        start = request.POST['startTime']
-        end = request.POST['endTime']
-        barber.available_hours[day] = {'daysOfWeek': [], 'startTime': start, 'endTime': end}
+        barber.available_hours = {
+            'daysOfWeek': list(map(int, request.POST.getlist("days[]"))), 
+            'startTime': request.POST['startTime'], 
+            'endTime': request.POST['endTime']
+            }
         barber.save()
-        return redirect('barber_hours_list', barber_id=barber.id)
-    return render(request, 'add_edit_barber_hours.html', {
+        return redirect('barber_hours')
+    
+    days = list(range(7))
+    name = ['Domingo', 'Segunda', 'Terça', 
+            'Quarta', 'Quinta', 'Sexta', 
+            'Sábado']
+    days_name = list(zip(days,name))
+    context = {
         'barber': barber,
-        'title': 'Editar Horário',
-        'day': day,
-        'start': hours.get('startTime', ''),
-        'end': hours.get('endTime', '')
-    })
-
-def delete_barber_hours(request, barber_id, day):
-    barber = get_object_or_404(Barber, id=barber_id)
-    if request.method == 'POST':
-        if day in barber.available_hours:
-            del barber.available_hours[day]
-            barber.save()
-        return redirect('barber_hours_list', barber_id=barber.id)
-    return render(request, 'confirm_delete_barber_hours.html', {'barber': barber, 'day': day})
+        'days': barber.available_hours.get('daysOfWeek'),
+        'startTime':barber.available_hours.get('startTime'),
+        'endTime': barber.available_hours.get('endTime'),
+        'daysName': days_name,
+        }
+    return render(request, 'edit_barber_hours.html', context)

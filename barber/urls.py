@@ -3,7 +3,6 @@ from . import views
 
 urlpatterns = [
     path('', views.show_home, name='home'),
-    path('barbeiros/', views.list_barbers, name='list_barbers'),
     path('categorias/', views.list_categories, name='list_categories'),
     path('servicos/', views.list_services, name='list_services'),
     path('barbeiro/<int:barber_id>/servicos/', views.barber_services, name='barber_services'),
@@ -20,9 +19,9 @@ urlpatterns = [
     path('agendamentos/adicionar/', views.add_appointment, name='add_appointment'),
     path('agendamentos/<int:appointment_id>/editar/', views.edit_appointment, name='edit_appointment'),
 
-    path('barbeiro/<int:barber_id>/horarios/', views.barber_hours_list, name='list_barber_hours'),
-    path('barbeiro/<int:barber_id>/horarios/adicionar/', views.add_barber_hours, name='add_barber_hours'),
-    path('barbeiro/<int:barber_id>/horarios/<int:index>/editar/', views.edit_barber_hours, name='edit_barber_hours'),
-    path('barbeiro/<int:barber_id>/horarios/<int:index>/excluir/', views.delete_barber_hours, name='delete_barber_hours'),
+    path('horarios/', views.barber_hours, name='barber_hours'),
+    path('horarios/editar/', views.edit_barber_hours, name='edit_barber_hours'),
+#    path('barbeiro/<int:barber_id>/horarios/', views.barber_hours_list ,name='list_barber_hours'),
+ #   
 
 ]

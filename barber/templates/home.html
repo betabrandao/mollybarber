@@ -7,10 +7,12 @@
 </head>
 <body class="bg-light">
   <div class="container py-5">
-    <h1 class="mb-4">Bem-vindo à Barbearia</h1>
-    <a href="{% url 'list_barbers' %}" class="btn btn-primary">Ver Barbeiros</a>
+    {% if user.is_authenticated %}
+    <h1 class="mb-4">Bem-vindo à Barbearia, {{ user.get_full_name|default:user.username }}</h1>
+    <a href="{% url 'edit_barber_hours' %}" class="btn btn-primary">Editar Horarios</a>
     <a href="{% url 'list_services' %}" class="btn btn-secondary">Ver Serviços</a>
     <a href="{% url 'list_appointments' %}" class="btn btn-success">Ver Agendamentos</a>
+  {% endif %}
   </div>
 </body>
 </html>

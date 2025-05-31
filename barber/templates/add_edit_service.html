@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container py-4">
-  <h2>Adicionar Serviço</h2>
+  <h2>{% if form.instance.pk %}Editar{% else %}Novo{% endif %} Serviço</h2>
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit" class="btn btn-success">Salvar</button>
+    <button type="submit" class="btn btn-primary">Salvar</button>
     <a href="{% url 'list_services' %}" class="btn btn-secondary">Cancelar</a>
   </form>
 </div>

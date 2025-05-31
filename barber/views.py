@@ -1,10 +1,10 @@
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from django.template import loader
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from .models import UserProfile, Barber, Category, Service, Appointment
-from .forms import ServiceForm, AppointmentForm
+from .forms import ServiceForm, AppointmentForm, CategoryForm
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate, login
 
@@ -14,42 +14,6 @@ import json
 def show_home(request):
     template = loader.get_template('home.html')
     return render(request, 'home.html', {'user': request.user})
-
-def barber_hours(request):
-    barber = get_object_or_404(Barber, user_id=request.user.id)
-    context = {'barber': barber}
-    return render(request, 'barbers.json', context)
-
-def list_categories(request):
-    categories = Category.objects.all()
-    template = loader.get_template('categories.html')
-    context = {'categories': categories}
-    return HttpResponse(template.render(context, request))
-
-def list_services(request):
-    services = Service.objects.all()
-    template = loader.get_template('services.html')
-    context = {'services': services}
-    return HttpResponse(template.render(context, request))
-
-def barber_services(request, barber_id):
-    barber = get_object_or_404(Barber, pk=barber_id)
-    services = barber.services.all()
-    template = loader.get_template('barber_services.html')
-    context = {'barber': barber, 'services': services}
-    return HttpResponse(template.render(context, request))
-
-def list_appointments(request):
-    appointments = Appointment.objects.all()
-    template = loader.get_template('appointments.html')
-    context = {'appointments': appointments}
-    return HttpResponse(template.render(context, request))
-
-def appointment_details(request, appointment_id):
-    appointment = get_object_or_404(Appointment, pk=appointment_id)
-    template = loader.get_template('appointment_detail.html')
-    context = {'appointment': appointment}
-    return HttpResponse(template.render(context, request))
 
 def register_user(request):
     if request.method == "POST":
@@ -77,23 +41,80 @@ def login_user(request):
         form = AuthenticationForm()
     return render(request, 'login.html', {'form': form, 'msg': msg})
 
-# - Funções do Forms
-# -------- SERVIÇO --------
+
+# ---------- CATEGORIAS ----------- ok
+
+@login_required
+def list_categories(request):
+    categories = Category.objects.all()
+    template = loader.get_template('categories.html')
+    context = {'categories': categories}
+    return HttpResponse(template.render(context, request))
+
+@login_required
+def add_category(request):
+    if request.method == 'POST':
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('list_categories')
+    else:
+        form = CategoryForm()
+    return render(request, 'add_edit_category.html', {'form': form})
+
+@login_required
+def edit_category(request, category_id):
+    category = get_object_or_404(Category, pk=category_id)
+    if request.method == 'POST':
+        form = CategoryForm(request.POST, instance=category)
+        if form.is_valid():
+            form.save()
+            return redirect('list_categories')
+    else:
+        form = CategoryForm(instance=category)
+    return render(request, 'add_edit_category.html', {'form': form, 'category': category})
+
+@login_required
+def delete_category(request, category_id):
+    category = get_object_or_404(Category, pk=category_id)
+    if request.method == 'POST':
+        category.delete()
+        return redirect('list_categories')
+    return render(request, 'delete_category.html', {'category': category})
+
+
+# ---------- SERVICOS ------------ ok
+@login_required
+def list_services(request):
+    services = Service.objects.all()
+    template = loader.get_template('services.html')
+    context = {'services': services}
+    return HttpResponse(template.render(context, request))
+
 @login_required
 def add_service(request):
+    if not hasattr(request.user, 'barber'):
+        return HttpResponseForbidden("Apenas barbeiros podem cadastrar serviços.")
+    
     if request.method == 'POST':
         form = ServiceForm(request.POST)
         if form.is_valid():
             service = form.save(commit=False)
-            service.barber = request.user.barber  # vincula ao barbeiro logado
-            form.save()
+            service.barber = request.user.barber
+            service.save()
             return redirect('list_services')
     else:
         form = ServiceForm()
-    return render(request, 'add_service.html', {'form': form})
+    
+    return render(request, 'add_edit_service.html', {'form': form})
 
+@login_required
 def edit_service(request, service_id):
     service = get_object_or_404(Service, pk=service_id)
+
+    if request.user.barber != service.barber:
+        return HttpResponseForbidden("Você não pode editar este serviço.")
+
     if request.method == 'POST':
         form = ServiceForm(request.POST, instance=service)
         if form.is_valid():
@@ -101,19 +122,49 @@ def edit_service(request, service_id):
             return redirect('list_services')
     else:
         form = ServiceForm(instance=service)
-    return render(request, 'edit_service.html', {'form': form})
+
+    return render(request, 'add_edit_service.html', {'form': form})
+
+@login_required
+def delete_service(request, service_id):
+    service = get_object_or_404(Service, pk=service_id)
+
+    if request.user.barber != service.barber:
+        return HttpResponseForbidden("Você não pode excluir este serviço.")
+
+    if request.method == 'POST':
+        service.delete()
+        return redirect('list_services')
+    
+    return render(request, 'delete_service.html', {'service': service})
 
 # -------- AGENDAMENTO --------
+def list_appointments(request):
+    appointments = Appointment.objects.filter(barber=request.user.barber).order_by('appointment_datetime')
+    template = loader.get_template('appointments.html')
+    context = {'appointments': appointments}
+    return HttpResponse(template.render(context, request))
+
+def appointment_details(request, appointment_id):
+    appointment = get_object_or_404(Appointment, pk=appointment_id)
+    template = loader.get_template('appointment_detail.html')
+    context = {'appointment': appointment}
+    return HttpResponse(template.render(context, request))
+
+@login_required
 def add_appointment(request):
     if request.method == 'POST':
         form = AppointmentForm(request.POST)
         if form.is_valid():
-            form.save()
+            appointment = form.save(commit=False)
+            appointment.barber = request.user.barber
+            appointment.save()
             return redirect('list_appointments')
     else:
         form = AppointmentForm()
     return render(request, 'add_appointment.html', {'form': form})
 
+@login_required
 def edit_appointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, pk=appointment_id)
     if request.method == 'POST':
@@ -125,16 +176,18 @@ def edit_appointment(request, appointment_id):
         form = AppointmentForm(instance=appointment)
     return render(request, 'edit_appointment.html', {'form': form})
 
-def barber_hours_list(request, barber_id):
-    barber = get_object_or_404(Barber, id=barber_id)
-    return render(request, 'barber_hours_list.html', {'barber': barber})
-
+# -------- HORARIOS DISPONIVEIS ------------- ok
+ 
+def barber_hours(request):
+    barber = get_object_or_404(Barber, user_id=request.user.id)
+    context = {'barber': barber}
+    return render(request, 'barbers.json', context)
 
 def edit_barber_hours(request):
     barber = get_object_or_404(Barber, user_id=request.user.id)
     if request.method == 'POST':
         barber.available_hours = {
-            'daysOfWeek': list(map(int, request.POST.getlist("days[]"))), 
+            'daysOfWeek': (map(int, request.POST.getlist("days[]"))), 
             'startTime': request.POST['startTime'], 
             'endTime': request.POST['endTime']
             }

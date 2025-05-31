@@ -6,7 +6,7 @@ from django.core.validators import MinValueValidator
 
 class UserProfile(models.Model):
     USER_TYPE_CHOICES = [
-        ('cliente', 'Cliente'),
+        ('usuario', 'usuario'),
         ('barbeiro', 'Barbeiro'),
         ('admin', 'Administrador'),
     ]
@@ -33,9 +33,14 @@ def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
 
 class Barber(models.Model):
-    context = {'daysOfWeek': [0], 'startTime': '00:00:00', 'endTime': '00:00:00'}
+    def default_available_hours():
+        return {
+            "daysOfWeek": [1,2,3,4,5],
+            "startTime": "09:00",
+            "endTime": "18:00"
+            }
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='barber')
-    available_hours = models.JSONField(default=context,blank=True, null=True)  # Ex.: {"Category_name": ["08:00:00", "19:00:00"]}
+    available_hours = models.JSONField(default=default_available_hours,blank=True, null=True)  # Ex.: {"Category_name": ["08:00:00", "19:00:00"]}
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -63,7 +68,6 @@ class Service(models.Model):
     barber = models.ForeignKey(Barber, on_delete=models.CASCADE, related_name='services')
     category = models.ForeignKey(Category, on_delete=models.RESTRICT, related_name='services')
     name = models.CharField(max_length=100)  # Ex.: "Corte de cabelo", "Barba"
-    description = models.TextField(blank=True, null=True)
     duration = models.DurationField()  # Ex.: timedelta(minutes=30)
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     created_at = models.DateTimeField(auto_now_add=True)
@@ -83,8 +87,8 @@ class Appointment(models.Model):
         ('cancelado', 'Cancelado'),
         ('concluido', 'Concluído'),
     ]
-
-    client = models.ForeignKey(User, on_delete=models.CASCADE, related_name='appointments')
+    client_name = models.CharField(max_length=50, blank=True, null=True)
+    client_cell = models.CharField(max_length=15, blank=True, null=True)
     barber = models.ForeignKey(Barber, on_delete=models.RESTRICT, related_name='appointments')
     service = models.ForeignKey(Service, on_delete=models.RESTRICT, related_name='appointments')
     appointment_datetime = models.DateTimeField()

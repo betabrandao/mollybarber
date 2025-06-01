@@ -60,13 +60,11 @@ def login_user(request):
 
 
 # ---------- CATEGORIAS ----------- 
-# TODO: avaliar se vai retornar só as categorias do barbeiro
-# TODO: necessario alterar o models e adicionar o barber_id
 
 @login_required
 @barber_required
 def list_categories(request):
-    categories = Category.objects.all()
+    categories = Category.objects.filter(barber=request.user.barber)
     context = {'categories': categories}
     return render2json(request, 'categories.html', context)
 
@@ -76,7 +74,9 @@ def add_category(request):
     if request.method == 'POST':
         form = CategoryForm(request.POST)
         if form.is_valid():
-            form.save()
+            category = form.save(commit=False)
+            category.barber = request.user.barber
+            category.save()
             #return redirect('list_categories')
             return JsonResponse({'success': True})
     else:
@@ -86,13 +86,15 @@ def add_category(request):
 @login_required
 @barber_required
 def edit_category(request, category_id):
-    category = get_object_or_404(Category, pk=category_id)
+    category = get_object_or_404(
+        Category, 
+        pk=category_id,
+        barber=request.user.barber)
     if request.method == 'POST':
         form = CategoryForm(request.POST, instance=category)
         if form.is_valid():
             form.save()
             return JsonResponse({'success': True})
-            #return redirect('list_categories')
     else:
         form = CategoryForm(instance=category)
     return render2json(request, 'add_edit_category.html', {'form': form, 'category': category})
@@ -113,7 +115,7 @@ def delete_category(request, category_id):
 @login_required
 @barber_required
 def list_services(request):
-    services = Service.objects.all()
+    services = Service.objects.filter(barber=request.user.barber)
     return render2json(request, 'services.html', {'services': services})
 
 @login_required
@@ -129,7 +131,6 @@ def add_service(request):
             service.barber = request.user.barber
             service.save()
             return JsonResponse({'success': True})
-            #return redirect('list_services')
     else:
         form = ServiceForm()
     
@@ -148,7 +149,6 @@ def edit_service(request, service_id):
         if form.is_valid():
             form.save()
             return JsonResponse({'success': True})
-            #return redirect('list_services')
     else:
         form = ServiceForm(instance=service)
 

@@ -120,13 +120,16 @@ volumes:
 ### .env (exemplo)
 
 ```env
-DEBUG=0
-SECRET_KEY=uma-chave-secreta
-ALLOWED_HOSTS=*
-DB_NAME=mollybarber
-DB_USER=molly
-DB_PASSWORD=secret
-DB_HOST=db
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.mail.fake
+EMAIL_PORT=465
+EMAIL_USE_TLS=False
+EMAIL_USE_SSL=True
+
+EMAIL_HOST_USER=user@mail.fake
+EMAIL_HOST_PASSWORD=password
+
+DEFAULT_FROM_EMAIL=user@mail.fake
 ```
 
 ---

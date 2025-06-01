@@ -1,0 +1,21 @@
+/*
+---- Custom Css para mudar a cor do evento do calendário
+---- Foi carregado o evento com className no FullCalender com o
+---- status do appointment, que modela a cor do evento no calendario
+---- de acordo com o status selecionado.
+*/
+
+.confirmado {
+    color: azure !important;
+    background-color: green!important;
+}
+
+.cancelado {
+    color: azure !important;
+    background-color: rgb(180, 0, 0)!important;
+}
+
+.concluido {
+    color: azure !important;
+    background-color: rgb(40, 62, 82)!important;
+}

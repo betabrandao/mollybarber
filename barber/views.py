@@ -176,7 +176,6 @@ def delete_service(request, service_id):
 @barber_required
 def appointment_details(request, appointment_id):
     appointment = get_object_or_404(Appointment, pk=appointment_id)
-    template = loader.get_template()
     context = {'appointment': appointment}
     return render2json(request, 'appointment_detail.html', context)
 
@@ -226,7 +225,8 @@ def appointments_feed(request):
             "title": f"{agendamento.service.name} - {agendamento.client_name}",
             "start": agendamento.appointment_datetime.isoformat(),
             "end": (agendamento.appointment_datetime + agendamento.service.duration).isoformat(),
-            "url": reverse('appointment_details', args=[agendamento.id])
+            "url": reverse('appointment_details', args=[agendamento.id]),
+            "classNames": agendamento.status,
         })
 
     return JsonResponse(eventos, safe=False)

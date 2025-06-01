@@ -7,13 +7,39 @@
     initialView: 'dayGridMonth',
     selectable: true,
     locale: 'pt-br',
+    timeZone: 'America/Sao_Paulo',
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',
       right: 'dayGridMonth,timeGridWeek,timeGridDay,list'
     },
     businessHours: {{ available_hours|safe }},
-    events: "{% url 'appointments_feed' %}"
+    events: "{% url 'appointments_feed' %}",
+
+      eventClick: function(info) {
+    info.jsEvent.preventDefault(); // impede o redirecionamento padrão
+
+    const url = info.event.url;
+    const $modal = $('#modalDinamico');
+    const $conteudo = $('#modalDinamicoConteudo');
+
+    $conteudo.html('<div class="text-center text-muted p-4">Carregando...</div>');
+    $modal.modal('show');
+
+    $.get(url, function(resposta) {
+      if (resposta.html) {
+        $conteudo.html(resposta.html);
+
+        // define o título dinamicamente se tiver <title> no HTML
+        const titulo = $(resposta.html).filter('title').text();
+        $('#modalDinamicoLabel').text(titulo || '');
+      } else {
+        $conteudo.html('<div class="alert alert-danger">Erro ao carregar o conteúdo.</div>');
+      }
+    }).fail(function () {
+      $conteudo.html('<div class="alert alert-danger">Erro ao carregar modal.</div>');
+    });
+  }
   });
 
   calendar.render();

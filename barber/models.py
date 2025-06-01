@@ -55,6 +55,7 @@ def create_barber_if_needed(sender, instance, created, **kwargs):
         Barber.objects.get_or_create(user=instance.user)
 
 class Category(models.Model):
+    barber = models.ForeignKey(Barber, on_delete=models.CASCADE, related_name='categories')
     name = models.CharField(max_length=100)  # Ex.: "Cortes", "Estética"
     created_at = models.DateTimeField(auto_now_add=True)
 

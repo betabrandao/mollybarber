@@ -25,7 +25,10 @@ def render2json(request, template, context):
 # -------- AUTENTICACAO --------------
 @login_required(login_url='login_user')
 def show_home(request):
-    available_hours = request.user.barber.available_hours
+    if hasattr(request.user, 'barber'):
+        available_hours = request.user.barber.available_hours
+    else:
+        available_hours = ''
     context = {
         'available_hours': available_hours,
         'user': request.user,
@@ -192,7 +195,7 @@ def add_appointment(request):
             return JsonResponse({'success': True})
             #return redirect('list_appointments')
     else:
-        form = AppointmentForm()
+        form = AppointmentForm(barber=request.user.barber)
     return render2json(request, 'add_appointment.html', {'form': form})
 
 @login_required

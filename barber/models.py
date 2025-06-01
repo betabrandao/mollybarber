@@ -13,7 +13,7 @@ class UserProfile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     phone = models.CharField(max_length=20, blank=True, null=True)
-    user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default='cliente')
+    user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default='usuario')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -30,6 +30,11 @@ class AppointmentForm(forms.ModelForm):
         widgets = {
             'appointment_datetime': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
         }
+    def __init__(self, *args, **kwargs):
+        barber = kwargs.pop('barber', None)  # extrai o barbeiro passado pela view
+        super().__init__(*args, **kwargs)
+        if barber:
+            self.fields['service'].queryset = Service.objects.filter(barber=barber)    
 
 class CategoryForm(forms.ModelForm):
     class Meta:

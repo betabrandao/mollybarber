@@ -1,8 +1,14 @@
 # MollyBarber
 
-**MollyBarber** é uma aplicação web desenvolvida com Django para gerenciamento de agendamentos e serviços de barbearia. Possui suporte a múltiplos barbeiros, cada um com suas próprias categorias, serviços e horários disponíveis, com interface moderna baseada em Bootstrap 5.
+**MollyBarber** é uma aplicação web desenvolvida com Django para gerenciamento de agendamentos e serviços de barbearia. Possui suporte a múltiplos barbeiros, cada um com suas próprias categorias, serviços e horários disponíveis, com interface moderna baseada em Bootstrap 5 e FullCalendar.
 
 ---
+
+## Alunos Envolvidos no projeto
+
+- Kaike Mota
+- Robson Oliveira
+- Roberta Brandão
 
 ##  Funcionalidades
 

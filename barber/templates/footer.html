@@ -5,7 +5,7 @@
 
   var calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
-    initialDate: '2025-04-07',
+    selectable: true,
     locale: 'pt-br',
     headerToolbar: {
       left: 'prev,next today',
@@ -38,6 +38,8 @@ $(document).ready(function () {
     $.get(url, function (resposta) {
       if (resposta.html) {
         $conteudo.html(resposta.html);
+
+        $conteudo.find('form#modal-form').attr('action', url);
 
         const titulo = $(resposta.html).filter('title').text();
         $modal_label.text(titulo || '');

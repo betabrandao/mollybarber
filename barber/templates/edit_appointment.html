@@ -1,7 +1,7 @@
 {% block content %}
 <title>Editar Agendamento</title>
 <div class="container py-4">
-  <form method="post">
+  <form  id="modal-form" method="post">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit" class="btn btn-primary">Atualizar</button>

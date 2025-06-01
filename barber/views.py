@@ -1,8 +1,9 @@
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.urls import reverse
 from django.template import loader
+from django.template.loader import render_to_string
 from django.shortcuts import render, get_object_or_404, redirect
-from django.utils import timezone
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate, login
 
@@ -11,11 +12,24 @@ from .models import Barber, Category, Service, Appointment
 from .forms import ServiceForm, AppointmentForm, CategoryForm
 
 import json
+from datetime import timedelta
 
+def render2json(request, template, context):
+    html = render_to_string(
+        template_name=template, 
+        context=context,
+        request=request)
+    return JsonResponse({'html': html})
+
+# -------- AUTENTICACAO --------------
 @login_required(login_url='login_user')
 def show_home(request):
-    template = loader.get_template('home.html')
-    return render(request, 'home.html', {'user': request.user})
+    available_hours = request.user.barber.available_hours
+    context = {
+        'available_hours': available_hours,
+        'user': request.user,
+    }
+    return render(request, 'home.html', context)
 
 def register_user(request):
     if request.method == "POST":
@@ -44,15 +58,14 @@ def login_user(request):
     return render(request, 'login.html', {'form': form, 'msg': msg})
 
 
-# ---------- CATEGORIAS ----------- ok
+# ---------- CATEGORIAS ----------- 
 
 @login_required
 @barber_required
 def list_categories(request):
     categories = Category.objects.all()
-    template = loader.get_template('categories.html')
     context = {'categories': categories}
-    return HttpResponse(template.render(context, request))
+    return render2json(request, 'categories.html', context)
 
 @login_required
 @barber_required
@@ -61,10 +74,11 @@ def add_category(request):
         form = CategoryForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('list_categories')
+            #return redirect('list_categories')
+            return JsonResponse({'success': True})
     else:
         form = CategoryForm()
-    return render(request, 'add_edit_category.html', {'form': form})
+    return render2json(request, 'add_edit_category.html', {'form': form})
 
 @login_required
 @barber_required
@@ -74,10 +88,11 @@ def edit_category(request, category_id):
         form = CategoryForm(request.POST, instance=category)
         if form.is_valid():
             form.save()
-            return redirect('list_categories')
+            return JsonResponse({'success': True})
+            #return redirect('list_categories')
     else:
         form = CategoryForm(instance=category)
-    return render(request, 'add_edit_category.html', {'form': form, 'category': category})
+    return render2json(request, 'add_edit_category.html', {'form': form, 'category': category})
 
 @login_required
 @barber_required
@@ -85,18 +100,19 @@ def delete_category(request, category_id):
     category = get_object_or_404(Category, pk=category_id)
     if request.method == 'POST':
         category.delete()
-        return redirect('list_categories')
-    return render(request, 'delete_category.html', {'category': category})
+        return JsonResponse({'success': True})
+        #return redirect('list_categories')
+    return render2json(request, 'delete_category.html', {'category': category})
 
 
-# ---------- SERVICOS ------------ ok
+# ---------- SERVICOS ------------  
+# TODO: avaliar se vai retornar só os serviços do barbeiro
+
 @login_required
 @barber_required
 def list_services(request):
     services = Service.objects.all()
-    template = loader.get_template('services.html')
-    context = {'services': services}
-    return HttpResponse(template.render(context, request))
+    return render2json(request, 'services.html', {'services': services})
 
 @login_required
 @barber_required
@@ -110,11 +126,12 @@ def add_service(request):
             service = form.save(commit=False)
             service.barber = request.user.barber
             service.save()
-            return redirect('list_services')
+            return JsonResponse({'success': True})
+            #return redirect('list_services')
     else:
         form = ServiceForm()
     
-    return render(request, 'add_edit_service.html', {'form': form})
+    return render2json(request, 'add_edit_service.html', {'form': form})
 
 @login_required
 @barber_required
@@ -128,11 +145,12 @@ def edit_service(request, service_id):
         form = ServiceForm(request.POST, instance=service)
         if form.is_valid():
             form.save()
-            return redirect('list_services')
+            return JsonResponse({'success': True})
+            #return redirect('list_services')
     else:
         form = ServiceForm(instance=service)
 
-    return render(request, 'add_edit_service.html', {'form': form})
+    return render2json(request, 'add_edit_service.html', {'form': form})
 
 @login_required
 @barber_required
@@ -144,26 +162,22 @@ def delete_service(request, service_id):
 
     if request.method == 'POST':
         service.delete()
-        return redirect('list_services')
+        return JsonResponse({'success': True})
+        #return redirect('list_services')
     
-    return render(request, 'delete_service.html', {'service': service})
+    return render2json(request, 'delete_service.html', {'service': service})
 
 # -------- AGENDAMENTO --------
 @login_required
 @barber_required
-def list_appointments(request):
-    appointments = Appointment.objects.filter(barber=request.user.barber).order_by('appointment_datetime')
-    template = loader.get_template('appointments.html')
-    context = {'appointments': appointments}
-    return HttpResponse(template.render(context, request))
 
 @login_required
 @barber_required
 def appointment_details(request, appointment_id):
     appointment = get_object_or_404(Appointment, pk=appointment_id)
-    template = loader.get_template('appointment_detail.html')
+    template = loader.get_template()
     context = {'appointment': appointment}
-    return HttpResponse(template.render(context, request))
+    return render2json(request, 'appointment_detail.html', context)
 
 @login_required
 @barber_required
@@ -174,10 +188,11 @@ def add_appointment(request):
             appointment = form.save(commit=False)
             appointment.barber = request.user.barber
             appointment.save()
-            return redirect('list_appointments')
+            return JsonResponse({'success': True})
+            #return redirect('list_appointments')
     else:
         form = AppointmentForm()
-    return render(request, 'add_appointment.html', {'form': form})
+    return render2json(request, 'add_appointment.html', {'form': form})
 
 @login_required
 @barber_required
@@ -187,10 +202,30 @@ def edit_appointment(request, appointment_id):
         form = AppointmentForm(request.POST, instance=appointment)
         if form.is_valid():
             form.save()
-            return redirect('list_appointments')
+            return JsonResponse({'success': True})
+            #return redirect('list_appointments')
     else:
         form = AppointmentForm(instance=appointment)
-    return render(request, 'edit_appointment.html', {'form': form})
+    return render2json(request, 'edit_appointment.html', {'form': form})
+
+@login_required
+def appointments_feed(request):
+    if not hasattr(request.user, 'barber'):
+        return JsonResponse([], safe=False)  # retorna lista vazia se não for barbeiro
+
+    appointments = Appointment.objects.filter(barber=request.user.barber).order_by('appointment_datetime')
+
+    eventos = []
+    for agendamento in appointments:
+        eventos.append({
+            "id": agendamento.id,
+            "title": f"{agendamento.service.name} - {agendamento.client_name}",
+            "start": agendamento.appointment_datetime.isoformat(),
+            "end": (agendamento.appointment_datetime + agendamento.service.duration).isoformat(),
+            "url": reverse('appointment_details', args=[agendamento.id])
+        })
+
+    return JsonResponse(eventos, safe=False)
 
 # -------- HORARIOS DISPONIVEIS ------------- ok
 
@@ -198,8 +233,7 @@ def edit_appointment(request, appointment_id):
 @barber_required
 def barber_hours(request):
     barber = get_object_or_404(Barber, user_id=request.user.id)
-    context = {'barber': barber}
-    return render(request, 'barbers.json', context)
+    return render2json(request, 'barbers.html', {'barber': barber})
 
 @login_required
 @barber_required
@@ -207,12 +241,12 @@ def edit_barber_hours(request):
     barber = get_object_or_404(Barber, user_id=request.user.id)
     if request.method == 'POST':
         barber.available_hours = {
-            'daysOfWeek': (map(int, request.POST.getlist("days[]"))), 
+            'daysOfWeek': list(map(int, request.POST.getlist("days[]"))), 
             'startTime': request.POST['startTime'], 
             'endTime': request.POST['endTime']
             }
         barber.save()
-        return redirect('barber_hours')
+        return JsonResponse({'success': True})
     
     days = list(range(7))
     name = ['Domingo', 'Segunda', 'Terça', 
@@ -226,4 +260,4 @@ def edit_barber_hours(request):
         'endTime': barber.available_hours.get('endTime'),
         'daysName': days_name,
         }
-    return render(request, 'edit_barber_hours.html', context)
+    return render2json(request, 'edit_barber_hours.html', context)

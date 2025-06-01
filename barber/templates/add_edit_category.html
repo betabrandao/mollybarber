@@ -1,12 +1,11 @@
-{% extends "base.html" %}
 {% block content %}
+<title>{{ category.name|default:"Nova Categoria" }}</title>
   <div class="container py-4">
-    <h2>{{ category.name|default:"Nova Categoria" }}</h2>
     <form method="post">
       {% csrf_token %}
       {{ form.as_p }}
       <button type="submit" class="btn btn-primary">Salvar</button>
-      <a href="{% url 'list_categories' %}" class="btn btn-secondary">Cancelar</a>
+      <a href="#" data-url="{% url 'list_categories' %}" class="btn btn-secondary abrir-modal">Cancelar</a>
     </form>
   </div>
 {% endblock %}

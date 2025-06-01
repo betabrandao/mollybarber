@@ -1,0 +1,86 @@
+{% block content %}
+<script>  
+ document.addEventListener('DOMContentLoaded', function() {
+  var calendarEl = document.getElementById('calendar');
+
+  var calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    initialDate: '2025-04-07',
+    locale: 'pt-br',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,timeGridDay,list'
+    },
+    businessHours: {{ available_hours|safe }},
+    events: "{% url 'appointments_feed' %}"
+  });
+
+  calendar.render();
+});
+</script>
+{% endblock %}
+
+<script>
+$(document).ready(function () {
+  const $modal = $('#modalDinamico');
+  const $conteudo = $('#modalDinamicoConteudo');
+  const $modal_label = $('#modalDinamicoLabel');
+
+  // 👉 Abrir modal via link com data-url
+  $('body').on('click', '.abrir-modal', function (e) {
+    e.preventDefault();
+    const url = $(this).data('url');
+
+    $conteudo.html('<div class="text-center text-muted p-4">Carregando...</div>');
+    $modal.modal('show');
+
+    $.get(url, function (resposta) {
+      if (resposta.html) {
+        $conteudo.html(resposta.html);
+
+        const titulo = $(resposta.html).filter('title').text();
+        $modal_label.text(titulo || '');
+      } else {
+        $conteudo.html('<div class="alert alert-danger">Erro ao carregar conteúdo.</div>');
+      }
+    }).fail(function () {
+      $conteudo.html('<div class="alert alert-danger">Erro ao carregar modal.</div>');
+    });
+  });
+
+  // 👉 Envio do formulário dentro do modal via AJAX
+  $modal.on('submit', '#modal-form', function (e) {
+    e.preventDefault();
+    const $form = $(this);
+    const url = $form.attr('action') || window.location.href;
+    const metodo = $form.attr('method') || 'post';
+
+    $.ajax({
+      url: url,
+      type: metodo,
+      data: $form.serialize(),
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      success: function (resposta) {
+        if (resposta.success) {
+          $modal.modal('hide');
+          location.reload();  // ou atualize uma parte específica
+        } else if (resposta.html) {
+          $conteudo.html(resposta.html);  // reexibe formulário com erros
+        } else {
+          $conteudo.html('<div class="alert alert-danger">Erro inesperado.</div>');
+        }
+      },
+      error: function () {
+        $conteudo.html('<div class="alert alert-danger">Erro ao enviar o formulário.</div>');
+      }
+    });
+  });
+});
+</script>
+
+
+  </body>
+</html>

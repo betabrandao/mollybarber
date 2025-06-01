@@ -1,7 +1,6 @@
-{% extends "base.html" %}
 {% block content %}
+<title>Serviços de {{ barber.user.get_full_name }}</title>
 <div class="container py-4">
-  <h2>Serviços de {{ barber.user.get_full_name }}</h2>
   <ul class="list-group">
     {% for service in services %}
       <li class="list-group-item">

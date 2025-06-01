@@ -1,7 +1,6 @@
-{% extends "base.html" %}
 {% block content %}
+<title>Confirmar Exclusão</title>
 <div class="container py-4">
-  <h2>Confirmar Exclusão</h2>
   <p>Deseja realmente excluir o horário para o dia <strong>{{ day }}</strong>?</p>
   <form method="post">
     {% csrf_token %}

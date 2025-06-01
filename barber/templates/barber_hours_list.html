@@ -1,7 +1,6 @@
-{% extends "base.html" %}
 {% block content %}
+<title>Horários Disponíveis</title>
 <div class="container py-4">
-  <h2>Horários Disponíveis</h2>
   <a href="{% url 'add_barber_hours' barber_id=barber.id %}" class="btn btn-success mb-3">Adicionar Horário</a>
   {% if barber.available_hours %}
     <ul class="list-group">

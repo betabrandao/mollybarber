@@ -1,13 +1,8 @@
-{% extends "base.html" %}
 {% block content %}
+<title>Editar Horario</title>
 <div class="container py-4">
-  <h2>Editar Horario</h2>
   <form method="post">
     {% csrf_token %}
-    <div class="mb-3">
-      <label for="day" class="form-label">Dias da Semana 1,2,3,4,5,6. 0 é domingo</label>
-      <input type="text" class="form-control" id="days" name="days" value="{{ days }}">
-    </div>
     <div class="mb-3">
       {% for id, name in daysName %}
       <div class="form-check form-check-inline">

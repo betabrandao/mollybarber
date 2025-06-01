@@ -40,10 +40,10 @@ urlpatterns = [
     path('servicos/<int:service_id>/excluir/', views.delete_service, name='delete_service'),
 
     # Agendamentos - ok
-    path('agendamentos/', views.list_appointments, name='list_appointments'),
     path('agendamento/<int:appointment_id>/', views.appointment_details, name='appointment_details'),
     path('agendamentos/adicionar/', views.add_appointment, name='add_appointment'),
     path('agendamentos/<int:appointment_id>/editar/', views.edit_appointment, name='edit_appointment'),
+    path('api/agendamentos/', views.appointments_feed, name='appointments_feed'),
 
     # Horario de trabalho - ok
     path('horarios/', views.barber_hours, name='barber_hours'),

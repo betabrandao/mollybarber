@@ -8,6 +8,7 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarScroll">
       <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
+        {% if user.is_authenticated %}
         <li class="nav-item">
           <a class="nav-link active abrir-modal" aria-current="page" href="#" data-url="{% url 'add_appointment' %}">Agendar Horario</a>
         </li>
@@ -21,10 +22,16 @@
             <li><a class="dropdown-item abrir-modal" href="#" data-url="{% url 'list_services' %}">Serviços Prestados</a></li>
           </ul>
         </li>
+        {% endif %}
+        {% if user.profile.user_type == "admin" %}
+         <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="/admin/">Administrar Usuários</a>
+        </li>
+        {% endif %}
       </ul>
-      <form class="d-flex" role="search">
-        <input class="form-control me-2" type="search" placeholder="Procurar" aria-label="Procurar"/>
-        <button class="btn btn-outline-success" type="submit">Procurar</button>
+      <form method="post" class="d-flex" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button class="btn btn-secondary" type="submit">Sair</button>
       </form>
     </div>
   </div>
@@ -32,6 +39,12 @@
 <br/>
 <br/>
 <br/>
+{% if user.profile.user_type == "usuario" %}
+  <div class="alert alert-warning">
+    Você tem o cadastro, mas não é um barbeiro. Algumas funcionalidades estão restritas.
+    Para habilitar seu login para administrar sua barbearia, entre em contato.
+  </div>
+{% endif %}
 {% include 'modal.html' %}
 {% include 'scripts.html' %}
     <div id='calendar'></div>

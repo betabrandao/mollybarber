@@ -1,0 +1,12 @@
+{% block content %}
+<title>Detalhes do Agendamento</title>
+<a href="#" data-url="{% url 'edit_appointment' appointment.id %}" class="btn btn-sm btn-primary abrir-modal">Editar</a>
+<div class="container py-4">
+  <ul class="list-group">
+    <li class="list-group-item"><strong>Cliente:</strong> {{ appointment.client_name }}</li>
+    <li class="list-group-item"><strong>Serviço:</strong> {{ appointment.service.name }}</li>
+    <li class="list-group-item"><strong>Data/Hora:</strong> {{ appointment.appointment_datetime }}</li>
+    <li class="list-group-item"><strong>Status:</strong> {{ appointment.status }}</li>
+  </ul>
+</div>
+{% endblock %}

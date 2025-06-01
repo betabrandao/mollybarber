@@ -1,0 +1,14 @@
+{% block content %}
+<title>Serviços de {{ barber.user.get_full_name }}</title>
+<div class="container py-4">
+  <ul class="list-group">
+    {% for service in services %}
+      <li class="list-group-item">
+        <strong>{{ service.name }}</strong>: {{ service.description }} - R$ {{ service.price }}
+      </li>
+    {% empty %}
+      <li class="list-group-item">Este barbeiro ainda não possui serviços cadastrados.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

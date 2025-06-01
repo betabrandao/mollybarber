@@ -1,0 +1,16 @@
+{% block content %}
+<title>Serviços Prestados</title>
+<a href="#" data-url="{% url 'add_service' %}" class="btn btn-success mb-3 abrir-modal">Novo Serviço</a>
+
+<ul class="list-group">
+  {% for service in services %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      {{ service.name }} | Duração: {{ service.duration }} |  R$ {{ service.price }}
+      <span>
+        <a href="#" data-url="{% url 'edit_service' service.id %}" class="btn btn-sm btn-primary abrir-modal">Editar</a>
+        <a href="#" data-url="{% url 'delete_service' service.id %}" class="btn btn-sm btn-danger abrir-modal">Excluir</a>
+      </span>
+    </li>
+  {% endfor %}
+</ul>
+{% endblock %}

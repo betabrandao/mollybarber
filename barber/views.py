@@ -1,181 +1,270 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .models import (
-        Barber, 
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseForbidden, JsonResponse
+from django.urls import reverse
+from django.template import loader
+from django.template.loader import render_to_string
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth import authenticate, login
+from django.utils.dateparse import parse_datetime
+
+from .decorators import barber_required
+from .models import Barber, Category, Service, Appointment
+from .forms import ServiceForm, AppointmentForm, CategoryForm
+
+import json
+from datetime import timedelta
+
+def render2json(request, template, context):
+    html = render_to_string(
+        template_name=template, 
+        context=context,
+        request=request)
+    return JsonResponse({'html': html})
+
+# -------- AUTENTICACAO --------------
+@login_required(login_url='login_user')
+def show_home(request):
+    if hasattr(request.user, 'barber'):
+        available_hours = request.user.barber.available_hours
+    else:
+        available_hours = ''
+    context = {
+        'available_hours': available_hours,
+        'user': request.user,
+    }
+    return render(request, 'home.html', context)
+
+def register_user(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    else:
+        form = UserCreationForm()
+    return render(request, 'register.html', {'form': form})
+
+def login_user(request):
+    msg = ''
+    if request.method == "POST":
+        username = request.POST["username"]
+        password = request.POST["password"]
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('home')
+        else:
+            form = AuthenticationForm()
+            msg = 'Credenciais inválidas'
+    else:
+        form = AuthenticationForm()
+    return render(request, 'login.html', {'form': form, 'msg': msg})
+
+
+# ---------- CATEGORIAS ----------- 
+
+@login_required
+@barber_required
+def list_categories(request):
+    categories = Category.objects.filter(barber=request.user.barber)
+    context = {'categories': categories}
+    return render2json(request, 'categories.html', context)
+
+@login_required
+@barber_required
+def add_category(request):
+    if request.method == 'POST':
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            category = form.save(commit=False)
+            category.barber = request.user.barber
+            category.save()
+            #return redirect('list_categories')
+            return JsonResponse({'success': True})
+    else:
+        form = CategoryForm()
+    return render2json(request, 'add_edit_category.html', {'form': form})
+
+@login_required
+@barber_required
+def edit_category(request, category_id):
+    category = get_object_or_404(
         Category, 
-        Service, 
-        Appointment
-        )
-from .serializers import (
-        BarberSerializer, 
-        CategorySerializer, 
-        ServiceSerializer, 
-        AppointmentSerializer
-        )
+        pk=category_id,
+        barber=request.user.barber)
+    if request.method == 'POST':
+        form = CategoryForm(request.POST, instance=category)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'success': True})
+    else:
+        form = CategoryForm(instance=category)
+    return render2json(request, 'add_edit_category.html', {'form': form, 'category': category})
 
-from django.template.response import TemplateResponse
-from django.views.generic import TemplateView
-#from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-
-
-
-# RENDER
-class RenderFrontEnd(TemplateView):
-    def get(self, request):
-        return TemplateResponse(request, 'home.html')
-
-class RenderConfigs(TemplateView):
-    def get(self, request):
-        return True
-
- #   def getAvaliableHours(self, request):
- #       barbers = get_object_or_404(Barber, )
-
-
-
-
-# BARBER
-class BarberListCreateView(APIView):
-    def get(self, request):
-        barbers = Barber.objects.all()
-        serializer = BarberSerializer(barbers, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = BarberSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class BarberDetailView(APIView):
-    def get_object(self, pk):
-        return get_object_or_404(Barber, pk=pk)
-
-    def get(self, request, pk):
-        barber = self.get_object(pk)
-        serializer = BarberSerializer(barber)
-        return Response(serializer.data)
-
-    def put(self, request, pk):
-        barber = self.get_object(pk)
-        serializer = BarberSerializer(barber, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        barber = self.get_object(pk)
-        barber.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-# CATEGORY
-class CategoryListCreateView(APIView):
-    def get(self, request):
-        categories = Category.objects.all()
-        serializer = CategorySerializer(categories, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = CategorySerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class CategoryDetailView(APIView):
-    def get_object(self, pk):
-        return get_object_or_404(Category, pk=pk)
-
-    def get(self, request, pk):
-        category = self.get_object(pk)
-        serializer = CategorySerializer(category)
-        return Response(serializer.data)
-
-    def put(self, request, pk):
-        category = self.get_object(pk)
-        serializer = CategorySerializer(category, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        category = self.get_object(pk)
+@login_required
+@barber_required
+def delete_category(request, category_id):
+    category = get_object_or_404(Category, pk=category_id)
+    if request.method == 'POST':
         category.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return JsonResponse({'success': True})
+        #return redirect('list_categories')
+    return render2json(request, 'delete_category.html', {'category': category})
 
-# SERVICE
-class ServiceListCreateView(APIView):
-    def get(self, request):
-        services = Service.objects.all()
-        serializer = ServiceSerializer(services, many=True)
-        return Response(serializer.data)
 
-    def post(self, request):
-        serializer = ServiceSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# ---------- SERVICOS ------------  
 
-class ServiceDetailView(APIView):
-    def get_object(self, pk):
-        return get_object_or_404(Service, pk=pk)
+@login_required
+@barber_required
+def list_services(request):
+    services = Service.objects.filter(barber=request.user.barber)
+    return render2json(request, 'services.html', {'services': services})
 
-    def get(self, request, pk):
-        service = self.get_object(pk)
-        serializer = ServiceSerializer(service)
-        return Response(serializer.data)
+@login_required
+@barber_required
+def add_service(request):
+    if not hasattr(request.user, 'barber'):
+        return HttpResponseForbidden("Apenas barbeiros podem cadastrar serviços.")
+    
+    if request.method == 'POST':
+        form = ServiceForm(request.POST)
+        if form.is_valid():
+            service = form.save(commit=False)
+            service.barber = request.user.barber
+            service.save()
+            return JsonResponse({'success': True})
+    else:
+        form = ServiceForm(barber=request.user.barber)
+    
+    return render2json(request, 'add_edit_service.html', {'form': form})
 
-    def put(self, request, pk):
-        service = self.get_object(pk)
-        serializer = ServiceSerializer(service, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+@login_required
+@barber_required
+def edit_service(request, service_id):
+    service = get_object_or_404(Service, pk=service_id)
 
-    def delete(self, request, pk):
-        service = self.get_object(pk)
+    if request.user.barber != service.barber:
+        return HttpResponseForbidden("Você não pode editar este serviço.")
+
+    if request.method == 'POST':
+        form = ServiceForm(request.POST, instance=service)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'success': True})
+    else:
+        form = ServiceForm(instance=service)
+
+    return render2json(request, 'add_edit_service.html', {'form': form})
+
+@login_required
+@barber_required
+def delete_service(request, service_id):
+    service = get_object_or_404(Service, pk=service_id)
+
+    if request.user.barber != service.barber:
+        return HttpResponseForbidden("Você não pode excluir este serviço.")
+
+    if request.method == 'POST':
         service.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return JsonResponse({'success': True})
+        #return redirect('list_services')
+    
+    return render2json(request, 'delete_service.html', {'service': service})
 
-# APPOINTMENT
-class AppointmentListCreateView(APIView):
-    def get(self, request):
-        appointments = Appointment.objects.all()
-        serializer = AppointmentSerializer(appointments, many=True)
-        return Response(serializer.data)
+# -------- AGENDAMENTO --------
+@login_required
+@barber_required
 
-    def post(self, request):
-        serializer = AppointmentSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+@login_required
+@barber_required
+def appointment_details(request, appointment_id):
+    appointment = get_object_or_404(Appointment, pk=appointment_id)
+    context = {'appointment': appointment}
+    return render2json(request, 'appointment_detail.html', context)
 
-class AppointmentDetailView(APIView):
-    def get_object(self, pk):
-        return get_object_or_404(Appointment, pk=pk)
+@login_required
+@barber_required
+def add_appointment(request):
+    if request.method == 'POST':
+        form = AppointmentForm(request.POST)
+        if form.is_valid():
+            appointment = form.save(commit=False)
+            appointment.barber = request.user.barber
+            appointment.save()
+            return JsonResponse({'success': True})
+            #return redirect('list_appointments')
+    else:
+        form = AppointmentForm(barber=request.user.barber)
+    return render2json(request, 'add_appointment.html', {'form': form})
 
-    def get(self, request, pk):
-        appointment = self.get_object(pk)
-        serializer = AppointmentSerializer(appointment)
-        return Response(serializer.data)
+@login_required
+@barber_required
+def edit_appointment(request, appointment_id):
+    appointment = get_object_or_404(Appointment, pk=appointment_id)
+    if request.method == 'POST':
+        form = AppointmentForm(request.POST, instance=appointment)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'success': True})
+    else:
+        form = AppointmentForm(instance=appointment)
+    return render2json(request, 'edit_appointment.html', {'form': form})
 
-    def put(self, request, pk):
-        appointment = self.get_object(pk)
-        serializer = AppointmentSerializer(appointment, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+@login_required
+@barber_required
+def appointments_feed(request):
+    start_date = parse_datetime(request.GET.get('start'))
+    end_date = parse_datetime(request.GET.get('end'))
+    appointments = Appointment.objects.filter(
+        barber=request.user.barber,
+        appointment_datetime__range=(start_date, end_date)
+        ).order_by('appointment_datetime')
 
-    def delete(self, request, pk):
-        appointment = self.get_object(pk)
-        appointment.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    eventos = []
+    for agendamento in appointments:
+        eventos.append({
+            "id": agendamento.id,
+            "title": f"{agendamento.service.name} - {agendamento.client_name}",
+            "start": agendamento.appointment_datetime.isoformat(),
+            "end": (agendamento.appointment_datetime + agendamento.service.duration).isoformat(),
+            "url": reverse('appointment_details', args=[agendamento.id]),
+            "classNames": agendamento.status,
+        })
+
+    return JsonResponse(eventos, safe=False)
+
+# -------- HORARIOS DISPONIVEIS ------------- ok
+
+@login_required
+@barber_required
+def barber_hours(request):
+    barber = get_object_or_404(Barber, user_id=request.user.id)
+    return render2json(request, 'barbers.html', {'barber': barber})
+
+@login_required
+@barber_required
+def edit_barber_hours(request):
+    barber = get_object_or_404(Barber, user_id=request.user.id)
+    if request.method == 'POST':
+        barber.available_hours = {
+            'daysOfWeek': list(map(int, request.POST.getlist("days[]"))), 
+            'startTime': request.POST['startTime'], 
+            'endTime': request.POST['endTime']
+            }
+        barber.save()
+        return JsonResponse({'success': True})
+    
+    days = list(range(7))
+    name = ['Domingo', 'Segunda', 'Terça', 
+            'Quarta', 'Quinta', 'Sexta', 
+            'Sábado']
+    days_name = list(zip(days,name))
+    context = {
+        'barber': barber,
+        'days': barber.available_hours.get('daysOfWeek'),
+        'startTime':barber.available_hours.get('startTime'),
+        'endTime': barber.available_hours.get('endTime'),
+        'daysName': days_name,
+        }
+    return render2json(request, 'edit_barber_hours.html', context)

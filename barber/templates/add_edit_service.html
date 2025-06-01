@@ -1,0 +1,11 @@
+{% block content %}
+<title>{% if form.instance.pk %}Editar{% else %}Novo{% endif %} Serviço</title>
+<div class="container py-4">
+  <form id="modal-form" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Salvar</button>
+    <a href ="#" data-url="{% url 'list_services' %}" class="btn btn-secondary abrir-modal">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

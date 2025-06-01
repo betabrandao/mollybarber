@@ -1,0 +1,11 @@
+{% block content %}
+<title>Editar Serviço</title>
+<div class="container py-4">
+  <form  id="modal-form" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Atualizar</button>
+    <a href="#" data-url="{% url 'list_services' %}" class="btn btn-secondary">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

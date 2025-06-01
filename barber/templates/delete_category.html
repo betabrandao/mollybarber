@@ -1,0 +1,11 @@
+{% block content %}
+<title>Confirmar Exclusão</title>
+  <div class="container py-4">
+    <p>Tem certeza que deseja excluir a categoria <strong>{{ category.name }}</strong>?</p>
+    <form  id="modal-form" method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Excluir</button>
+      <a href="#" data-url="{% url 'list_categories' %}" class="btn btn-secondary abrir-modal">Cancelar</a>
+    </form>
+  </div>
+{% endblock %}

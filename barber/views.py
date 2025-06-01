@@ -1,11 +1,12 @@
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.http import HttpResponseForbidden, JsonResponse
 from django.urls import reverse
 from django.template import loader
 from django.template.loader import render_to_string
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate, login
+from django.utils.dateparse import parse_datetime
 
 from .decorators import barber_required
 from .models import Barber, Category, Service, Appointment
@@ -209,11 +210,14 @@ def edit_appointment(request, appointment_id):
     return render2json(request, 'edit_appointment.html', {'form': form})
 
 @login_required
+@barber_required
 def appointments_feed(request):
-    if not hasattr(request.user, 'barber'):
-        return JsonResponse([], safe=False)  # retorna lista vazia se não for barbeiro
-
-    appointments = Appointment.objects.filter(barber=request.user.barber).order_by('appointment_datetime')
+    start_date = parse_datetime(request.GET.get('start'))
+    end_date = parse_datetime(request.GET.get('end'))
+    appointments = Appointment.objects.filter(
+        barber=request.user.barber,
+        appointment_datetime__range=(start_date, end_date)
+        ).order_by('appointment_datetime')
 
     eventos = []
     for agendamento in appointments:

@@ -1,6 +1,6 @@
 {% block content %}
+<title>{% if form.instance.pk %}Editar{% else %}Novo{% endif %} Serviço</title>
 <div class="container py-4">
-  <title>{% if form.instance.pk %}Editar{% else %}Novo{% endif %} Serviço</title>
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}

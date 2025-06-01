@@ -28,7 +28,7 @@
       <input type="time" class="form-control" id="endTime" name="endTime" value="{{ endTime }}">
     </div>
     <button type="submit" class="btn btn-primary">Salvar</button>
-    <a href="{% url 'barber_hours' %}" class="btn btn-secondary">Cancelar</a>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
   </form>
 </div>
 {% endblock %}

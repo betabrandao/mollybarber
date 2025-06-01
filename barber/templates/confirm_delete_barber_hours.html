@@ -5,7 +5,7 @@
   <form method="post">
     {% csrf_token %}
     <button type="submit" class="btn btn-danger">Sim, excluir</button>
-    <a href="{% url 'barber_hours_list' barber_id=barber.id %}" class="btn btn-secondary">Cancelar</a>
+    <a href="#" data-url="{% url 'barber_hours_list' barber_id=barber.id %}" class="btn btn-secondary">Cancelar</a>
   </form>
 </div>
 {% endblock %}

@@ -7,8 +7,8 @@
       {% for key, value in barber.available_hours.items %}
         <li class="list-group-item">
           <strong>{{ key }}</strong>: {{ value }}
-          <a href="{% url 'edit_barber_hours' barber_id=barber.id day=key %}" class="btn btn-sm btn-primary float-end ms-2">Editar</a>
-          <a href="{% url 'delete_barber_hours' barber_id=barber.id day=key %}" class="btn btn-sm btn-danger float-end">Excluir</a>
+          <a href="#" data-url="{% url 'edit_barber_hours' barber_id=barber.id day=key %}" class="btn btn-sm btn-primary float-end ms-2 abrir-modal">Editar</a>
+          <a href="#" data-url="{% url 'delete_barber_hours' barber_id=barber.id day=key %}" class="btn btn-sm btn-danger float-end abrir-modal">Excluir</a>
         </li>
       {% endfor %}
     </ul>

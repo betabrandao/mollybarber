@@ -60,6 +60,8 @@ def login_user(request):
 
 
 # ---------- CATEGORIAS ----------- 
+# TODO: avaliar se vai retornar só as categorias do barbeiro
+# TODO: necessario alterar o models e adicionar o barber_id
 
 @login_required
 @barber_required
@@ -107,7 +109,6 @@ def delete_category(request, category_id):
 
 
 # ---------- SERVICOS ------------  
-# TODO: avaliar se vai retornar só os serviços do barbeiro
 
 @login_required
 @barber_required
@@ -203,7 +204,6 @@ def edit_appointment(request, appointment_id):
         if form.is_valid():
             form.save()
             return JsonResponse({'success': True})
-            #return redirect('list_appointments')
     else:
         form = AppointmentForm(instance=appointment)
     return render2json(request, 'edit_appointment.html', {'form': form})

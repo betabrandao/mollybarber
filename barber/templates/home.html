@@ -9,13 +9,14 @@
     <div class="collapse navbar-collapse" id="navbarScroll">
       <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
         <li class="nav-item">
-          <a class="nav-link active abrir-modal" aria-current="page" href="#" data-url="{% url 'edit_barber_hours' %}">Horário de Atendimento</a>
+          <a class="nav-link active abrir-modal" aria-current="page" href="#" data-url="{% url 'add_appointment' %}">Agendar Horario</a>
         </li>
         <li class="nav-item dropdown">
           <a class="nav-link active dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             Gerenciar Barbearia
           </a>
           <ul class="dropdown-menu">
+            <a class="nav-link active abrir-modal" aria-current="page" href="#" data-url="{% url 'edit_barber_hours' %}">Horário de Atendimento</a>
             <li><a class="dropdown-item abrir-modal" href="#" data-url="{% url 'list_services' %}">Serviços Prestados</a></li>
             <li><a class="dropdown-item abrir-modal" href="#" data-url="{% url 'list_categories' %}">Categorias</a></li>
           </ul>

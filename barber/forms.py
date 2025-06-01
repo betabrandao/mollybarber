@@ -14,6 +14,11 @@ class ServiceForm(forms.ModelForm):
         widgets = {
             'duration': forms.TextInput(attrs={'placeholder': '00:30:00'}),
         }
+    def __init__(self, *args, **kwargs):
+        barber = kwargs.pop('barber', None)  # extrai o barbeiro passado pela view
+        super().__init__(*args, **kwargs)
+        if barber:
+            self.fields['category'].queryset = Category.objects.filter(barber=barber)
 
 class AppointmentForm(forms.ModelForm):
     class Meta:

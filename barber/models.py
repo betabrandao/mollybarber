@@ -74,10 +74,8 @@ class Service(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        try:
-            return f"{self.name} - {self.barber}"
-        except:
-            return f"{self.name} - [Sem barbeiro ainda]"
+        return f"{self.name} - R$ {self.price}"
+
 
     class Meta:
         db_table = 'servicos'

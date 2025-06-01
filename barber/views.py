@@ -135,7 +135,7 @@ def add_service(request):
             service.save()
             return JsonResponse({'success': True})
     else:
-        form = ServiceForm()
+        form = ServiceForm(barber=request.user.barber)
     
     return render2json(request, 'add_edit_service.html', {'form': form})
 

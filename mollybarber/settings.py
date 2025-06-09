@@ -25,9 +25,9 @@ SECRET_KEY = 'django-insecure-+*r+k#z-^emxal5%0j^9m$+^6k7n4qec7!4kl=##(y*1o4q=e(
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['local.robertabrandao.com.br', 'barber.robertabrandao.com.br', '127.0.0.1', 'localhost']
 
-
+CSRF_TRUSTED_ORIGINS = ['https://local.robertabrandao.com.br', 'https://barber.robertabrandao.com.br']
 # Application definition
 
 INSTALLED_APPS = [
